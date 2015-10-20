@@ -16,7 +16,18 @@
             "databaseName": "tailspintoysdb",
             "administratorLogin": "msftdxte"
         },
-        "databaseConnectionString": "[concat('Data Source=tcp:', concat(variables('database').serverName, '.database.windows.net'), ',1433;Initial Catalog=', variables('database').databaseName, ';User Id=', variables('database').administratorLogin, '@', variables('database').serverName, ';Password=', parameters('sqlAzurePassword'), ';')]"
+        "appInsightsTag":  "bb2f698c-c81a-4224-9d13-39fbf4f39452",
+        "databaseConnectionString": "[concat('Data Source=tcp:', concat(variables('database').serverName, '.database.windows.net'), ',1433;Initial Catalog=', variables('database').databaseName, ';User Id=', variables('database').administratorLogin, '@', variables('database').serverName, ';Password=', parameters('sqlAzurePassword'), ';')]",
+         "sqlAzureServicePlan": {
+            "Basic": "dd6d99bb-f193-4ec1-86f2-43d3bccbc49c",
+            "S0": "f1173c43-91bd-4aaa-973c-54e79e15235b",
+            "S1": "1b1ebd4d-d903-4baa-97f9-4ea675f5e928",
+            "S2": "455330e1-00cd-488b-b5fa-177c226f28b7",
+            "S3": "789681b8-ca10-4eb0-bdf2-e0b050601b40",
+            "P1": "7203483a-c4fb-4304-9e9f-17c71c904f5d",
+            "P2": "a7d1b92d-c987-4375-b54d-2b1d0e0f5bb0",
+            "P3": "a7c4c615-cfb1-464b-b252-925be0a19446"
+        }
     },
     "resources": [
         {
@@ -34,7 +45,7 @@
         },
         {
             "type": "Microsoft.Web/sites",
-            "apiVersion": "2015-02-01",
+            "apiVersion": "2015-06-01",
             "name": "[concat(parameters('siteName'), '-', variables('suffix').first)]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -52,30 +63,52 @@
             "resources": [
                 {
                     "type": "config",
+                    "name": "connectionstrings",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').first))]"
+                    ],
+                    "properties": {
+                        "TailspinConnectionString": {
+                            "value": "[variables('databaseConnectionString')]",
+                            "type": "SQLAzure"
+                        }
+                    }
+                },
+                {
+                    "type": "config",
+                    "name": "appsettings",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').first))]"
+                    ],
+                    "properties": {
+                        "tags": "productionA",
+                        "iTag":  "[variables('appInsightsTag')]"
+                    }
+                },
+                {
+                    "type": "config",
                     "name": "web",
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "2015-06-01",
                     "dependsOn": [
                         "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').first))]"
                     ],
                     "properties": {
                         "connectionStrings": [
                             {
-                                "Name": "DefaultConnection",
+                                "Name": "TailspinConnectionString",
                                 "ConnectionString": "[variables('databaseConnectionString')]",
                                 "Type": "SQLAzure"
                             }
+                        ],
+                        "alwaysOn": true,
+                        "appSettings": [
+                            {
+                                "Name": "FOOBARBAZ",
+                                "Value": "HHGG"
+                            }
                         ]
-                    }
-                },
-                {
-                    "type": "config",
-                    "name": "appsettings",
-                    "apiVersion": "2015-08-01",
-                    "dependsOn": [
-                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').first))]"
-                    ],
-                    "properties": {
-                       "FOOBARBAZ": "HHGG"
                     }
                 }
             ]
@@ -98,6 +131,32 @@
                 "hostingEnvironment": ""
             },
             "resources": [
+                {
+                    "type": "config",
+                    "name": "connectionstrings",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').second))]"
+                    ],
+                    "properties": {
+                        "TailspinConnectionString": {
+                            "value": "[variables('databaseConnectionString')]",
+                            "type": "SQLAzure"
+                        }
+                    }
+                },
+                {
+                    "type": "config",
+                    "name": "appsettings",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').second))]"
+                    ],
+                    "properties": {
+                        "tags": "productionB",
+                        "iTag":  "[variables('appInsightsTag')]"
+                    }
+                },
                 {
                     "type": "config",
                     "apiVersion": "2014-06-01",
