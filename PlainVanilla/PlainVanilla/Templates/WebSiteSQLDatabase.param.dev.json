@@ -5,7 +5,7 @@
         "siteName": {
             "value": "chgeuer3"
         },
-        "administratorLoginPassword": {
+        "sqlAzurePassword": {
             "value": "test123.-"
         }
     }

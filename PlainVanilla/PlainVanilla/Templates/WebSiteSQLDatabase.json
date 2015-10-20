@@ -3,71 +3,18 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "siteName": { "type": "string" },
-        "administratorLoginPassword": { "type": "securestring" }
+        "sqlAzurePassword": { "type": "securestring" }
     },
     "variables": {
-        "serverName": "[concat('db-', parameters('siteName'))]",
         "hostingPlanName": "[concat(parameters('siteName'), '-plan')]",
-        "databaseName": "db1",
-        "administratorLogin": "dbadm",
-        "sqlAzureServicePlan": {
-            "Basic": "dd6d99bb-f193-4ec1-86f2-43d3bccbc49c",
-            "S0": "f1173c43-91bd-4aaa-973c-54e79e15235b",
-            "S1": "1b1ebd4d-d903-4baa-97f9-4ea675f5e928",
-            "S2": "455330e1-00cd-488b-b5fa-177c226f28b7",
-            "S3": "789681b8-ca10-4eb0-bdf2-e0b050601b40",
-            "P1": "7203483a-c4fb-4304-9e9f-17c71c904f5d",
-            "P2": "a7d1b92d-c987-4375-b54d-2b1d0e0f5bb0",
-            "P3": "a7c4c615-cfb1-464b-b252-925be0a19446"
-        }
+        "database": {
+            "serverName": "tailspintoysdbserver",
+            "databaseName": "tailspintoysdb",
+            "administratorLogin": "msftdxte"
+        },
+        "databaseConnectionString": "[concat('Data Source=tcp:', concat(variables('database').serverName, '.database.windows.net'), ',1433;Initial Catalog=', variables('database').databaseName, ';User Id=', variables('database').administratorLogin, '@', variables('database').serverName, ';Password=', parameters('sqlAzurePassword'), ';')]"
     },
     "resources": [
-        {
-            "name": "[variables('serverName')]",
-            "type": "Microsoft.Sql/servers",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "SqlServer"
-            },
-            "apiVersion": "2014-04-01-preview",
-            "properties": {
-                "administratorLogin": "[variables('administratorLogin')]",
-                "administratorLoginPassword": "[parameters('administratorLoginPassword')]"
-            },
-            "resources": [
-                {
-                    "name": "[variables('databaseName')]",
-                    "type": "databases",
-                    "location": "[resourceGroup().location]",
-                    "tags": {
-                        "displayName": "Database"
-                    },
-                    "apiVersion": "2014-04-01-preview",
-                    "dependsOn": [
-                        "[concat('Microsoft.Sql/servers/', variables('serverName'))]"
-                    ],
-                    "properties": {
-                        "edition": "Basic",
-                        "collation": "[concat('SQL_Latin1_General_CP1_CI_AS')]",
-                        "maxSizeBytes": "1073741824",
-                        "requestedServiceObjectiveId": "[variables('sqlAzureServicePlan').Basic]"
-                    }
-                },
-                {
-                    "type": "firewallrules",
-                    "apiVersion": "2014-04-01-preview",
-                    "dependsOn": [
-                        "[concat('Microsoft.Sql/servers/', variables('serverName'))]"
-                    ],
-                    "location": "[resourceGroup().location]",
-                    "name": "AllowAllWindowsAzureIps",
-                    "properties": {
-                        "endIpAddress": "0.0.0.0",
-                        "startIpAddress": "0.0.0.0"
-                    }
-                }
-            ]
-        },
         {
             "apiVersion": "2014-06-01",
             "name": "[variables('hostingPlanName')]",
@@ -110,7 +57,7 @@
                         "connectionStrings": [
                             {
                                 "Name": "DefaultConnection",
-                                "ConnectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', variables('administratorLogin'), '@', variables('serverName'), ';Password=', parameters('administratorLoginPassword'), ';')]",
+                                "ConnectionString": "[variables('databaseConnectionString')]",
                                 "Type": 2
                             }
                         ]
@@ -147,7 +94,7 @@
                         "connectionStrings": [
                             {
                                 "Name": "DefaultConnection",
-                                "ConnectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', variables('administratorLogin'), '@', variables('serverName'), ';Password=', parameters('administratorLoginPassword'), ';')]",
+                                "ConnectionString": "[variables('databaseConnectionString')]",
                                 "Type": 2
                             }
                         ]
