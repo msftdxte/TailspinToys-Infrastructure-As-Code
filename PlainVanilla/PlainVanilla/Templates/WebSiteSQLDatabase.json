@@ -106,35 +106,33 @@
             },
             "resources": [
                 {
-                    "apiVersion": "2014-06-01",
-                    "name": "MSDeploy",
                     "type": "Microsoft.Web/sites/extensions",
+                    "apiVersion": "2014-06-01",
+                    "name": "[concat('Microsoft.Web/sites/', parameters('siteName'), 'MSDeploy')]",
                     "dependsOn": [
-                        "[concat('Microsoft.Web/Sites/', parameters('siteName'))]",
-                        "[concat('Microsoft.Web/Sites/', parameters('siteName'), '/config/web')]"
+                        "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
                     ],
                     "properties": {
                         "packageUri": "[variables('dropLocation')]",
                         "dbType": "SQL",
                         "connectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', variables('administratorLogin'), '@', variables('serverName'), ';Password=', parameters('administratorLoginPassword'), ';')]",
                         "setParameters": {
-                            "Application Path": "[parameters('siteName')]",
-                            "Database Server": "[reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName]"
+                            "Application Path": "[parameters('siteName')]"
                         }
                     }
                 },
                 {
+                    "type": "Microsoft.Web/sites/config",
                     "apiVersion": "2014-06-01",
-                    "type": "config",
-                    "name": "web",
+                    "name": "[concat('Microsoft.Web/sites/', parameters('siteName'), 'web')]",
                     "dependsOn": [
-                        "[concat('Microsoft.Web/Sites/', parameters('siteName'))]"
+                        "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
                     ],
                     "properties": {
                         "connectionStrings": [
                             {
-                                "ConnectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', variables('administratorLogin'), '@', variables('serverName'), ';Password=', parameters('administratorLoginPassword'), ';')]",
                                 "Name": "DefaultConnection",
+                                "ConnectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', variables('administratorLogin'), '@', variables('serverName'), ';Password=', parameters('administratorLoginPassword'), ';')]",
                                 "Type": 2
                             }
                         ]
