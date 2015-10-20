@@ -4,10 +4,13 @@
     "parameters": {
         "siteName": { "type": "string" },
         "administratorLoginPassword": { "type": "securestring" },
-        "dropFilename":  { "type": "string", "defaultValue": "drop.zip" }
+        "dropFilename": {
+            "type": "string",
+            "defaultValue": "drop.zip"
+        }
     },
     "variables": {
-        "dropLocation":  "[concat('https://tailspintoysdeploy.blob.core.windows.net/drops/', parameters('dropFilename'), '?sv=2014-02-14&sr=c&si=dropdownload&sig=onpqGyQuH%2FQoZHzcwXScqCe7EoBBSf%2BXB2ajrjFGvVc%3D&se=2016-12-31T18%3A07%3A40Z')]",
+        "dropLocation": "[concat('https://tailspintoysdeploy.blob.core.windows.net/drops/', parameters('dropFilename'), '?sv=2014-02-14&sr=c&si=dropdownload&sig=onpqGyQuH%2FQoZHzcwXScqCe7EoBBSf%2BXB2ajrjFGvVc%3D&se=2016-12-31T18%3A07%3A40Z')]",
         "serverName": "[concat('db-', parameters('siteName'))]",
         "hostingPlanName": "[concat(parameters('siteName'), '-plan')]",
         "databaseName": "db1",
@@ -84,7 +87,7 @@
             }
         },
         {
-            "apiVersion": "2014-06-01",
+            "apiVersion": "2015-02-01",
             "name": "[parameters('siteName')]",
             "type": "Microsoft.Web/sites",
             "location": "[resourceGroup().location]",
@@ -97,9 +100,29 @@
             },
             "properties": {
                 "name": "[parameters('siteName')]",
-                "serverFarm": "[variables('hostingPlanName')]"
+                "serverFarm": "[variables('hostingPlanName')]",
+                "serverFarmId": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
+                "hostingEnvironment": ""
             },
             "resources": [
+                {
+                    "apiVersion": "2014-06-01",
+                    "name": "MSDeploy",
+                    "type": "Microsoft.Web/sites/extensions",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/Sites/', parameters('siteName'))]",
+                        "[concat('Microsoft.Web/Sites/', parameters('siteName'), '/config/web')]"
+                    ],
+                    "properties": {
+                        "packageUri": "[variables('dropLocation')]",
+                        "dbType": "SQL",
+                        "connectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', variables('administratorLogin'), '@', variables('serverName'), ';Password=', parameters('administratorLoginPassword'), ';')]",
+                        "setParameters": {
+                            "Application Path": "[parameters('siteName')]",
+                            "Database Server": "[reference(concat('Microsoft.Sql/servers/', variables('serverName'))).fullyQualifiedDomainName]"
+                        }
+                    }
+                },
                 {
                     "apiVersion": "2014-06-01",
                     "type": "config",
@@ -331,7 +354,7 @@
             ],
             "tags": {
                 "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('siteName'))]": "Resource",
-                "displayName" : "AppInsightsComponent"
+                "displayName": "AppInsightsComponent"
             },
             "properties": {
                 "ApplicationId": "[parameters('siteName')]"
