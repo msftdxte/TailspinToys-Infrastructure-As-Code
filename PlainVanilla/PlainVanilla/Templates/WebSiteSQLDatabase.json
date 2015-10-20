@@ -7,6 +7,10 @@
     },
     "variables": {
         "hostingPlanName": "[concat(parameters('siteName'), '-plan')]",
+        "suffix": {
+            "first": "main",
+            "second": "abtesting"
+        },
         "database": {
             "serverName": "tailspintoysdbserver",
             "databaseName": "tailspintoysdb",
@@ -31,7 +35,7 @@
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "2015-02-01",
-            "name": "[concat(parameters('siteName'), '-main')]",
+            "name": "[concat(parameters('siteName'), '-', variables('suffix').first)]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Web/serverFarms/', variables('hostingPlanName'))]"
@@ -41,33 +45,44 @@
                 "displayName": "Website - Main"
             },
             "properties": {
-                "name": "[concat(parameters('siteName'), '-main')]",
+                "name": "[concat(parameters('siteName'), '-', variables('suffix').first)]",
                 "serverFarmId": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
                 "hostingEnvironment": ""
             },
             "resources": [
                 {
                     "type": "config",
-                    "apiVersion": "2014-06-01",
                     "name": "web",
+                    "apiVersion": "2015-08-01",
                     "dependsOn": [
-                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-main'))]"
+                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').first))]"
                     ],
                     "properties": {
                         "connectionStrings": [
                             {
                                 "Name": "DefaultConnection",
                                 "ConnectionString": "[variables('databaseConnectionString')]",
-                                "Type": 2
+                                "Type": "SQLAzure"
                             }
                         ]
+                    }
+                },
+                {
+                    "type": "config",
+                    "name": "appsettings",
+                    "apiVersion": "2015-08-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').first))]"
+                    ],
+                    "properties": {
+                       "FOOBARBAZ": "HHGG"
                     }
                 }
             ]
         },
         {
             "apiVersion": "2015-02-01",
-            "name": "[concat(parameters('siteName'), '-abtesting')]",
+            "name": "[concat(parameters('siteName'), '-', variables('suffix').second)]",
             "type": "Microsoft.Web/sites",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -78,7 +93,7 @@
                 "displayName": "Website - A/B testing"
             },
             "properties": {
-                "name": "[concat(parameters('siteName'), '-abtesting')]",
+                "name": "[concat(parameters('siteName'), '-', variables('suffix').second)]",
                 "serverFarmId": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
                 "hostingEnvironment": ""
             },
@@ -88,7 +103,7 @@
                     "apiVersion": "2014-06-01",
                     "name": "web",
                     "dependsOn": [
-                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-abtesting'))]"
+                        "[concat('Microsoft.Web/sites/', concat(parameters('siteName'), '-', variables('suffix').second))]"
                     ],
                     "properties": {
                         "connectionStrings": [
