@@ -4,10 +4,7 @@
     "parameters": {
         "siteName": { "type": "string" },
         "administratorLoginPassword": { "type": "securestring" },
-        "dropFilename": {
-            "type": "string",
-            "defaultValue": "drop.zip"
-        }
+        "dropFilename": { "type": "string", "defaultValue": "drop.zip" }
     },
     "variables": {
         "dropLocation": "[concat('https://tailspintoysdeploy.blob.core.windows.net/drops/', parameters('dropFilename'), '?sv=2014-02-14&sr=c&si=dropdownload&sig=onpqGyQuH%2FQoZHzcwXScqCe7EoBBSf%2BXB2ajrjFGvVc%3D&se=2016-12-31T18%3A07%3A40Z')]",
@@ -100,8 +97,7 @@
             },
             "properties": {
                 "name": "[parameters('siteName')]",
-                "serverFarm": "[variables('hostingPlanName')]",
-                "serverFarmId": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
+                "serverFarmId":"[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
                 "hostingEnvironment": ""
             },
             "resources": [
